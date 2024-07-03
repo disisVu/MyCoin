@@ -1,4 +1,4 @@
-import colors from '~/material';
+import colors from '~/material'
 
 export default function HomePage() {
   return (
