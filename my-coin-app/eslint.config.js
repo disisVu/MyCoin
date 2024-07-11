@@ -3,6 +3,7 @@ import pluginJs from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import pluginReactConfig from 'eslint-plugin-react/configs/recommended.js'
 import eslintConfigPrettier from 'eslint-config-prettier'
+import stylisticTs from '@stylistic/eslint-plugin-ts'
 
 export default [
   { files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'] },
@@ -17,6 +18,9 @@ export default [
       react: {
         version: 'detect' // Automatically detect the React version
       }
+    },
+    plugins: {
+      '@stylistic/ts': stylisticTs
     },
     ignores: [
       'node_modules/*',
@@ -42,8 +46,8 @@ export default [
       'keyword-spacing': 1,
       'comma-dangle': 1,
       'comma-spacing': 1,
-      'arrow-spacing': 1
-
+      'arrow-spacing': 1,
+      'max-len': ['error', { 'code': 120, 'tabWidth': 2 }]
     }
   }
 ]
