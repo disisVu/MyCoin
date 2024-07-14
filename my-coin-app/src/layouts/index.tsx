@@ -10,7 +10,7 @@ export default function Layout() {
         direction: 'column',
         width: '100%',
         height: '100vh', padding: 0,
-        backgroundColor: 'white',
+        backgroundColor: '#fdfdff',
         margin: 'auto'
       }}
     >

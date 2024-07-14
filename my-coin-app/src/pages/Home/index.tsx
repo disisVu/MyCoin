@@ -2,7 +2,7 @@ import { Grid } from '@mui/material'
 import { BlockList, TransactionList } from '~/components/List/index'
 import { blockData } from '~/data/blocks'
 import { transactionData } from '~/data/transactions'
-import colors from '~/material'
+import { colors } from '~/material'
 
 export default function HomePage() {
   return (

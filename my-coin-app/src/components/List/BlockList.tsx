@@ -1,4 +1,4 @@
-import colors from '~/material'
+import { colors } from '~/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCube } from '@fortawesome/free-solid-svg-icons'
 import { BlockSchema } from '~/data/blocks'
