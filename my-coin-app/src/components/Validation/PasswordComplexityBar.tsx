@@ -46,9 +46,9 @@ export default function passwordComplexityBar({ complexity } : PasswordComplexit
     case 1:
       return 'Very weak' // Red
     case 2:
-      return 'Weak' // Orange
+      return 'Weak' // Red
     case 3:
-      return 'Medium' // Yellow
+      return 'Medium' // Orange
     case 4:
       return 'Strong' // Green
     case 5:

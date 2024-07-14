@@ -40,7 +40,7 @@ export default function LandingModal({ setIsOpen } : LandingModalProps) {
       >
         One Wallet.
       </span>
-      <ButtonPrimary text='Create a new wallet' onClickCallback={openNewPasswordModal}/>
+      <ButtonPrimary enabled={true} text='Create a new wallet' onClickCallback={openNewPasswordModal}/>
       <ButtonTransparent text='Restore existing wallet' onClickCallback={() => {}}/>
     </div>
 
