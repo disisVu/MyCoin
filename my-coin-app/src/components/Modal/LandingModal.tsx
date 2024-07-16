@@ -8,7 +8,7 @@ interface LandingModalProps {
 
 export default function LandingModal({ setIsOpen } : LandingModalProps) {
   function openNewPasswordModal() {
-    setIsOpen([false, true, false])
+    setIsOpen([false, true, false, false])
   }
 
   return (
@@ -43,6 +43,5 @@ export default function LandingModal({ setIsOpen } : LandingModalProps) {
       <ButtonPrimary enabled={true} text='Create a new wallet' onClickCallback={openNewPasswordModal}/>
       <ButtonTransparent text='Restore existing wallet' onClickCallback={() => {}}/>
     </div>
-
   )
 }

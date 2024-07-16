@@ -16,11 +16,11 @@ interface NewPasswordModalProps {
 
 export default function NewPasswordModal({ setIsOpen, setStoredPassword } : NewPasswordModalProps) {
   function handleReturn() {
-    setIsOpen([true, false, false])
+    setIsOpen([true, false, false, false])
   }
 
   function openConfirmPasswordModal() {
-    setIsOpen([false, false, true])
+    setIsOpen([false, false, true, false])
     setStoredPassword(password)
   }
 

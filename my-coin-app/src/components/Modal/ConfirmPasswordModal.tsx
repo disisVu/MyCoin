@@ -15,11 +15,11 @@ interface ConfirmPasswordModalProps {
 
 export default function ConfirmPasswordModal({ storedPassword, setIsOpen } : ConfirmPasswordModalProps) {
   function handleReturn() {
-    setIsOpen([false, true, false])
+    setIsOpen([false, true, false, false])
   }
 
-  function openConfirmPasswordModal() {
-    setIsOpen([false, false, true])
+  function openSeedPhraseModal() {
+    setIsOpen([false, false, false, true])
   }
 
   const [password, setPassword] = React.useState<string>('')
@@ -100,7 +100,7 @@ export default function ConfirmPasswordModal({ storedPassword, setIsOpen } : Con
         <div style={{ marginTop: '20px' }}>
           <ButtonPrimary
             enabled={(isMatchedPassword && password != '')}
-            text='Next' onClickCallback={openConfirmPasswordModal}
+            text='Next' onClickCallback={openSeedPhraseModal}
           />
         </div>
       </div>
