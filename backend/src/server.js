@@ -1,26 +1,45 @@
+/* eslint-disable no-console */
 import express from 'express'
-import { mapOrder } from '~/utils/sorts.js'
+import { closeDatabaseConnection, connectDatabase, getDatabase } from '~/config/mongodb'
+import exitHook from 'async-exit-hook'
+import { env } from '~/config/environment'
+import { myCoinAPI } from '~/routes/index'
+import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
 
-const app = express()
+const startServer = async () => {
+  const app = express()
 
-const hostname = 'localhost'
-const port = 8017
+  app.use(express.json())
 
-app.get('/', (req, res) => {
-  // Test Absolute import mapOrder
-  console.log(mapOrder(
-    [{ id: 'id-1', name: 'One' },
-      { id: 'id-2', name: 'Two' },
-      { id: 'id-3', name: 'Three' },
-      { id: 'id-4', name: 'Four' },
-      { id: 'id-5', name: 'Five' }],
-    ['id-5', 'id-4', 'id-2', 'id-3', 'id-1'],
-    'id'
-  ))
-  res.end('<h1>Hello World!</h1><hr>')
-})
+  app.use('/api', myCoinAPI)
 
-app.listen(port, hostname, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Hello Trung Quan Dev, I am running at ${ hostname }:${ port }/`)
-})
+  app.use(errorHandlingMiddleware)
+
+  app.get('/', async (req, res) => {
+    console.log(await getDatabase().listCollections().toArray())
+    res.end('<h1>Hello World!</h1>')
+  })
+
+  app.listen(env.PORT, env.HOSTNAME, () => {
+    console.log(`3. Server is running at http://${env.HOSTNAME}:${env.PORT}`)
+  })
+
+  exitHook(() => {
+    console.log('4. Server is shutting down...')
+    closeDatabaseConnection()
+    console.log('5. Disconnected from MongoDB Atlas.')
+  })
+}
+
+(async () => {
+  try {
+    console.log('1. Connecting to database...')
+    await connectDatabase()
+    console.log('2. Connected to database.')
+    startServer()
+  }
+  catch (error) {
+    console.log(error)
+    process.exit(0)
+  }
+})()
