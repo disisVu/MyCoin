@@ -4,7 +4,7 @@ import { getDatabase } from '~/config/mongodb'
 const BLOCK_COLLECTION_NAME = 'blocks'
 const BLOCK_COLLECTION_SCHEMA = Joi.object({
   index: Joi.number().required(),
-  previousHash: Joi.string().required(),
+  prevHash: Joi.string().required(),
   timestamp: Joi.date().timestamp('unix'),
   data: Joi.string().required(),
   hash: Joi.string().required()
