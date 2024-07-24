@@ -1,4 +1,4 @@
-import * as CryptoTS from 'crypto-ts'
+import * as CryptoJS from 'crypto-js'
 import { Transaction } from '~/models/classes/Transaction'
 
 class Block {
@@ -17,7 +17,9 @@ class Block {
   }
 
   calculateHash() {
-    return CryptoTS.SHA256(this.index + this.prevHash + this.timestamp + this.data).toString()
+    const dataString = JSON.stringify(this.data)
+    const hash = CryptoJS.SHA256(this.index + this.prevHash + this.timestamp + dataString).toString()
+    return hash
   }
 }
 

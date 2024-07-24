@@ -14,7 +14,7 @@ const startServer = async () => {
   chain.blockchain.push(chain.generateNextBlock([]))
 
   chain.blockchain.map((block: Block) => {
-    console.log('Block ', block.index, ': ', block.prevHash, ' - ', block.hash)
+    console.log('Block ', block.index, ': ', block.timestamp, ' - ', block.prevHash, ' - ', block.hash)
   })
 
   const app = express()
