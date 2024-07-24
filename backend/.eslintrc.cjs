@@ -1,16 +1,17 @@
 module.exports = {
   env: { es2020: true, node: true },
   extends: [
-    'eslint:recommended'
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended'
   ],
-  parser: '@babel/eslint-parser',
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
     requireConfigFile: false,
     allowImportExportEverywhere: true
   },
-  plugins: [],
+  plugins: ['@typescript-eslint'],
   rules: {
     // Common
     'no-console': 1,

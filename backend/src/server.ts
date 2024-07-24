@@ -5,8 +5,18 @@ import exitHook from 'async-exit-hook'
 import { env } from '~/config/environment'
 import { myCoinAPI } from '~/routes/index'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
+import { Block } from '~/models/classes/Block'
+import { Blockchain } from '~/models/classes/Blockchain'
 
 const startServer = async () => {
+  const chain: Blockchain = new Blockchain()
+  chain.blockchain.push(chain.generateNextBlock([]))
+  chain.blockchain.push(chain.generateNextBlock([]))
+
+  chain.blockchain.map((block: Block) => {
+    console.log('Block ', block.index, ': ', block.prevHash, ' - ', block.hash)
+  })
+
   const app = express()
 
   app.use(express.json())
@@ -20,7 +30,7 @@ const startServer = async () => {
     res.end('<h1>Hello World!</h1>')
   })
 
-  app.listen(env.PORT, env.HOSTNAME, () => {
+  app.listen(parseInt(env.PORT, 10), env.HOSTNAME, () => {
     console.log(`3. Server is running at http://${env.HOSTNAME}:${env.PORT}`)
   })
 
