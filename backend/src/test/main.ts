@@ -9,6 +9,6 @@ const chain: Blockchain = new Blockchain()
 chain.generateNextBlock([])
 chain.generateNextBlock([])
 
-chain.blockchain.map((block: Block) => {
+chain.chain.map((block: Block) => {
   console.log('Block ', block.index)
 })

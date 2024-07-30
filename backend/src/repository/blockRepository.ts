@@ -1,9 +1,10 @@
+// src/repositories/blockRepository.ts
 import { getDatabase } from '~/config/mongodb'
 import { Block } from '~/models/classes/Block'
 
 const BLOCK_COLLECTION_NAME = 'blocks'
 
-const createNew = async (block: Block) => {
+const createBlock = async (block: Block) => {
   try {
     const db = getDatabase()
     const collection = db.collection(BLOCK_COLLECTION_NAME)
@@ -14,7 +15,6 @@ const createNew = async (block: Block) => {
   }
 }
 
-export const blockModel = {
-  BLOCK_COLLECTION_NAME,
-  createNew
+export const blockRepository = {
+  createBlock
 }

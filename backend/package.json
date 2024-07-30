@@ -14,12 +14,13 @@
     "build-babel": "babel ./src -d ./build/src --extensions \".js,.ts\"",
     "build": "npm run clean && npm run build-ts && npm run build-babel",
     "production": "npm run build && node ./build/src/server.ts",
-    "dev": "nodemon --exec babel-node ./src/server.ts --extensions \".js,.ts\"",
-    "test": "node ./src/test/main.ts"
+    "dev": "nodemon --exec babel-node ./src/server.ts --extensions \".js,.ts\""
   },
   "dependencies": {
     "@babel/runtime": "^7.22.10",
+    "@types/bip39": "^3.0.0",
     "@types/crypto-js": "^4.2.2",
+    "@types/hdkey": "^2.0.3",
     "async-exit-hook": "^2.0.1",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.5",
@@ -27,7 +28,8 @@
     "http-status-codes": "^2.3.0",
     "joi": "^17.13.3",
     "mongodb": "^6.8.0",
-    "node": "^18.20.4"
+    "node": "^18.20.4",
+    "peerjs": "^1.5.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.24.8",
@@ -39,12 +41,16 @@
     "@babel/preset-typescript": "^7.24.7",
     "@types/async-exit-hook": "^2.0.2",
     "@types/babel__preset-env": "^7.9.7",
+    "@types/elliptic": "^6.4.18",
     "@types/express": "^4.17.21",
     "@types/node": "^20.14.12",
     "@typescript-eslint/eslint-plugin": "^7.17.0",
     "@typescript-eslint/parser": "^7.17.0",
     "babel-plugin-module-resolver": "^5.0.0",
+    "bip39": "^3.1.0",
+    "elliptic": "^6.5.6",
     "eslint": "^8.57.0",
+    "hdkey": "^2.1.0",
     "nodemon": "^3.0.1",
     "typescript": "^5.5.4"
   }

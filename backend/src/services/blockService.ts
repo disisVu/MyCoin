@@ -1,9 +1,9 @@
-import { blockModel } from '~/models/blockModel'
 import { Block } from '~/models/classes/Block'
+import { blockRepository } from '~/repository/blockRepository'
 
 const createNew = async (reqBody: Block) => {
   try {
-    const createdBlock = await blockModel.createNew(reqBody)
+    const createdBlock = await blockRepository.createBlock(reqBody)
     return createdBlock
   }
   catch (error) {

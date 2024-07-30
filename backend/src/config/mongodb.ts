@@ -1,8 +1,6 @@
-import * as mongoDB from 'mongodb'
 import { env } from '~/config/environment'
-
 /* eslint-disable no-console */
-const { MongoClient, Db, ServerApiVersion } = require('mongodb')
+import { MongoClient, Db, ServerApiVersion } from 'mongodb'
 
 const mongoClient = new MongoClient(env.MONGODB_URL, {
   serverApi: {
@@ -12,7 +10,7 @@ const mongoClient = new MongoClient(env.MONGODB_URL, {
   }
 })
 
-let databaseInstance: mongoDB.Db | null = null;
+let databaseInstance: Db | null = null
 
 export const connectDatabase = async () => {
   await mongoClient.connect()

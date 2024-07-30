@@ -1,12 +1,19 @@
 /* eslint-disable no-console */
 import { Block } from '~/models/classes/Block'
-import { Transaction } from '~/models/classes/Transaction'
+import { Transaction, UnspentTxOut } from '~/models/classes/Transaction'
+import { Validator } from '~/models/classes/Validator'
 
 class Blockchain {
-  public blockchain: Block[]
+  public chain: Block[]
+  public validators: Validator[]
+  public pendingTxs: Transaction[]
+  private utxos: UnspentTxOut[]
 
   constructor() {
-    this.blockchain = [Blockchain.createGenesisBlock()]
+    this.chain = [Blockchain.createGenesisBlock()]
+    this.validators = []
+    this.pendingTxs = []
+    this.utxos = this.getAllUnspentTxOuts()
   }
 
   static createGenesisBlock() {
@@ -14,7 +21,7 @@ class Blockchain {
   }
 
   getLatestBlock() {
-    return this.blockchain[this.blockchain.length - 1]
+    return this.chain[this.chain.length - 1]
   }
 
   generateNextBlock(data: Transaction[]) {
@@ -40,13 +47,13 @@ class Blockchain {
   }
 
   isValidChain() {
-    if (JSON.stringify(this.blockchain[0]) != JSON.stringify(Blockchain.createGenesisBlock())) {
+    if (JSON.stringify(this.chain[0]) != JSON.stringify(Blockchain.createGenesisBlock())) {
       return false
     }
-    const tempBlockchain = [this.blockchain[0]]
-    for (let i = 1; i < this.blockchain.length; i++) {
-      if (Blockchain.isValidNewBlock(this.blockchain[i], tempBlockchain[i - 1])) {
-        tempBlockchain.push(this.blockchain[i])
+    const tempBlockchain = [this.chain[0]]
+    for (let i = 1; i < this.chain.length; i++) {
+      if (Blockchain.isValidNewBlock(this.chain[i], tempBlockchain[i - 1])) {
+        tempBlockchain.push(this.chain[i])
       }
       else {
         return false
@@ -56,12 +63,77 @@ class Blockchain {
   }
 
   replaceChain(newBlockchain: Blockchain) {
-    if (newBlockchain.isValidChain() && newBlockchain.blockchain.length > this.blockchain.length) {
+    if (newBlockchain.isValidChain() && newBlockchain.chain.length > this.chain.length) {
       console.log('Received blockchain is valid')
-      this.blockchain = newBlockchain.blockchain
+      this.chain = newBlockchain.chain
     }
     else {
       console.log('Received blockchain invalid')
+    }
+  }
+
+  getAllUnspentTxOuts(): UnspentTxOut[] {
+    const unspentTxOuts: UnspentTxOut[] = []
+    this.chain.forEach(block => {
+      block.data.forEach(transaction => {
+        transaction.txOuts.forEach((txOut, index) => {
+          unspentTxOuts.push(new UnspentTxOut(transaction.id, index, txOut.address, txOut.amount))
+        })
+        transaction.txIns.forEach(txIn => {
+          const indexToRemove = unspentTxOuts.findIndex(utxo => utxo.txOutId === txIn.txOutId && utxo.txOutIndex === txIn.txOutIndex)
+          if (indexToRemove >= 0) {
+            unspentTxOuts.splice(indexToRemove, 1)
+          }
+        })
+      })
+    })
+    return unspentTxOuts
+  }
+
+  updateUnspentTxOuts(newTransactions: Transaction[]): void {
+    newTransactions.forEach(transaction => {
+      // Add new UTXOs from the transaction outputs
+      transaction.txOuts.forEach((txOut, index) => {
+        this.utxos.push(new UnspentTxOut(transaction.id, index, txOut.address, txOut.amount))
+      })
+      // Remove spent UTXOs referenced by the transaction inputs
+      transaction.txIns.forEach(txIn => {
+        const indexToRemove = this.utxos.findIndex(
+          utxo => utxo.txOutId === txIn.txOutId && utxo.txOutIndex === txIn.txOutIndex
+        )
+        if (indexToRemove >= 0) {
+          this.utxos.splice(indexToRemove, 1)
+        }
+      })
+    })
+  }
+
+  stakeCoins(address: string, amount: number) {
+    const validator = this.validators.find(v => v.address === address)
+    if (validator) {
+      validator.stake += amount
+    } else {
+      this.validators.push(new Validator(address, amount))
+    }
+  }
+
+  selectValidator() : Validator {
+    const totalStake = this.validators.reduce((sum, v) => sum + v.stake, 0)
+    const random = Math.random() * totalStake
+    let cumulativeStake = 0
+    for (const validator of this.validators) {
+      cumulativeStake += validator.stake
+      if (cumulativeStake >= random) {
+        return validator
+      }
+    }
+    return this.validators[0]
+  }
+
+  rewardValidator(address: string, reward: number) {
+    const validator = this.validators.find(v => v.address == address)
+    if (validator) {
+      validator.stake += reward
     }
   }
 }

@@ -1,4 +1,5 @@
-import * as CryptoJS from 'crypto-js'
+import CryptoJS from 'crypto-js'
+import Joi from 'joi'
 import { Transaction } from '~/models/classes/Transaction'
 
 class Block {
@@ -16,9 +17,22 @@ class Block {
     this.hash = this.calculateHash()
   }
 
+  private static get schema() {
+    return Joi.object({
+      index: Joi.number().integer().required(),
+      prevHash: Joi.string().required(),
+      timestamp: Joi.number().required(),
+      data: Joi.array(),
+      hash: Joi.string().required()
+    })
+  }
+
+  static async validateAsync(block: Block) {
+    return this.schema.validateAsync(block, { abortEarly: false })
+  }
+
   calculateHash() {
-    const dataString = JSON.stringify(this.data)
-    const hash = CryptoJS.SHA256(this.index + this.prevHash + this.timestamp + dataString).toString()
+    const hash = CryptoJS.SHA256(this.index + this.prevHash + this.timestamp + this.data).toString()
     return hash
   }
 }

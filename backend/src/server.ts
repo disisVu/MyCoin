@@ -5,17 +5,26 @@ import exitHook from 'async-exit-hook'
 import { env } from '~/config/environment'
 import { myCoinAPI } from '~/routes/index'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
-import { Block } from '~/models/classes/Block'
-import { Blockchain } from '~/models/classes/Blockchain'
 
 const startServer = async () => {
-  const chain: Blockchain = new Blockchain()
-  chain.blockchain.push(chain.generateNextBlock([]))
-  chain.blockchain.push(chain.generateNextBlock([]))
+  // const chain: Blockchain = new Blockchain()
+  // chain.chain.push(chain.generateNextBlock([]))
+  // chain.chain.push(chain.generateNextBlock([]))
 
-  chain.blockchain.map((block: Block) => {
-    console.log('Block ', block.index, ': ', block.timestamp, ' - ', block.prevHash, ' - ', block.hash)
-  })
+  // chain.chain.map((block: Block) => {
+  //   console.log('Block ', block.index, ': ', block.timestamp, ' - ', block.prevHash, ' - ', block.hash)
+  // })
+
+  // (async () => {
+  //   const seedPhrase = Wallet.generateSeedPhrase()
+  //   console.log('Seed Phrase:', seedPhrase)
+
+  //   const privateKey = await Wallet.getPrivateKeyFromSeed(seedPhrase, 'mypassword')
+  //   console.log('Private Key:', privateKey)
+
+  //   const publicKey = Wallet.getPublicKey(privateKey)
+  //   console.log('Public Key:', publicKey)
+  // })()
 
   const app = express()
 
