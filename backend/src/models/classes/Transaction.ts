@@ -1,4 +1,4 @@
-import Wallet from '~/models/classes/Wallet'
+import { Wallet } from '~/models/classes/Wallet'
 import CryptoJS from 'crypto-js'
 import { ec as EC } from 'elliptic'
 const ec = new EC('secp256k1')
@@ -21,7 +21,7 @@ class TxIn {
     allUnspentTxOuts: UnspentTxOut[]
   ) : string {
     const txIn = transaction.txIns[txOutIndex]
-    const dataToSign = transaction.id
+    const dataToSign = CryptoJS.SHA256(transaction.id).toString()
     const referencedUnspentTxOut = UnspentTxOut.findUnspentTxOutById(txIn.txOutId, txIn.txOutIndex, allUnspentTxOuts)
     if (referencedUnspentTxOut == null) {
       throw new Error('Could not find referenced txOut')
@@ -140,6 +140,12 @@ class Transaction {
     })
 
     return transaction
+  }
+
+  // Function to verify a signature
+  static verifySignature(publicKey: string, transactionId: string, signature: string) : boolean {
+    const signedData = CryptoJS.SHA256(transactionId).toString()
+    return ec.keyFromPublic(publicKey, 'hex').verify(signedData, signature)
   }
 }
 

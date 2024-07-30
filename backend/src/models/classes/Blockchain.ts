@@ -75,7 +75,7 @@ class Blockchain {
   getAllUnspentTxOuts(): UnspentTxOut[] {
     const unspentTxOuts: UnspentTxOut[] = []
     this.chain.forEach(block => {
-      block.data.forEach(transaction => {
+      block.transactions.forEach(transaction => {
         transaction.txOuts.forEach((txOut, index) => {
           unspentTxOuts.push(new UnspentTxOut(transaction.id, index, txOut.address, txOut.amount))
         })
@@ -135,6 +135,100 @@ class Blockchain {
     if (validator) {
       validator.stake += reward
     }
+  }
+
+  // Method to verify each transaction in a block
+  verifyBlockTransactions(block: Block): boolean {
+    for (const transaction of block.transactions) {
+      if (!this.verifyTransaction(transaction)) {
+        return false // If any transaction is invalid, return false
+      }
+    }
+    return true // All transactions are valid
+  }
+
+  // Method to verify a single transaction
+  private verifyTransaction(transaction: Transaction): boolean {
+    // 1. Verify transaction syntax
+    if (!this.verifyTransactionSyntax(transaction)) {
+      return false
+    }
+
+    // 2. Verify signatures
+    if (!this.verifyTransactionSignatures(transaction)) {
+      return false
+    }
+
+    // 3. Validate inputs
+    if (!this.validateTransactionInputs(transaction)) {
+      return false
+    }
+
+    // 4. Validate outputs
+    if (!this.validateTransactionOutputs(transaction)) {
+      return false
+    }
+
+    // 5. Check for double spending
+    if (!this.checkForDoubleSpending(transaction)) {
+      return false
+    }
+
+    return true // Transaction is valid
+  }
+
+  // Verify transaction syntax
+  private verifyTransactionSyntax(transaction: Transaction): boolean {
+    // Check for proper format, etc.
+    return transaction != null && Array.isArray(transaction.txIns) && Array.isArray(transaction.txOuts)
+  }
+
+  // Verify transaction signatures
+  private verifyTransactionSignatures(transaction: Transaction): boolean {
+    // Verify each TxIn's signature
+    return transaction.txIns.every(txIn => {
+      const { txOutId, txOutIndex, signature } = txIn
+      const txOut = this.utxos.find(utxo => utxo.txOutId === txOutId && utxo.txOutIndex === txOutIndex)
+      if (!txOut) {
+        return false // UTXO must exist
+      }
+      return Transaction.verifySignature(txOut.address, transaction.id, signature)
+    })
+  }
+
+  // Validate transaction inputs
+  private validateTransactionInputs(transaction: Transaction): boolean {
+    // Inputs must be unspent
+    return transaction.txIns.every(txIn => {
+      return this.utxos.some(utxo => utxo.txOutId === txIn.txOutId && utxo.txOutIndex === txIn.txOutIndex)
+    })
+  }
+
+  // Validate transaction outputs
+  private validateTransactionOutputs(transaction: Transaction): boolean {
+    const totalInputValue = transaction.txIns.reduce((sum, txIn) => {
+      const utxo = this.utxos.find(utxo => utxo.txOutId === txIn.txOutId && utxo.txOutIndex === txIn.txOutIndex)
+      return sum + (utxo ? utxo.amount : 0)
+    }, 0)
+
+    const totalOutputValue = transaction.txOuts.reduce((sum, txOut) => sum + txOut.amount, 0)
+
+    // Total input must be greater than or equal to total output
+    return totalInputValue >= totalOutputValue
+  }
+
+  // Check for double spending
+  private checkForDoubleSpending(transaction: Transaction): boolean {
+    // Check that the inputs are not already spent in the current block
+    const usedInputs = new Set<string>()
+    return transaction.txIns.every(txIn => {
+      const inputId = `${txIn.txOutId}:${txIn.txOutIndex}`
+      if (usedInputs.has(inputId)) {
+        return false // Double spend detected
+      }
+      usedInputs.add(inputId)
+      return true
+    })
   }
 }
 

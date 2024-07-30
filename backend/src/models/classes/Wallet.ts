@@ -44,4 +44,4 @@ class Wallet {
   console.log('Public Key:', publicKey)
 })()
 
-export default Wallet
+export { Wallet }

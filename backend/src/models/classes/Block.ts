@@ -6,14 +6,14 @@ class Block {
   public index: number
   public prevHash: string
   public timestamp: number
-  public data: Transaction[]
+  public transactions: Transaction[]
   public hash: string
 
-  constructor(index: number, prevHash: string, data: Transaction[]) {
+  constructor(index: number, prevHash: string, transactions: Transaction[]) {
     this.index = index
     this.prevHash = prevHash
     this.timestamp = new Date().getTime() / 1000
-    this.data = data
+    this.transactions = transactions
     this.hash = this.calculateHash()
   }
 
@@ -22,7 +22,7 @@ class Block {
       index: Joi.number().integer().required(),
       prevHash: Joi.string().required(),
       timestamp: Joi.number().required(),
-      data: Joi.array(),
+      transactions: Joi.array(),
       hash: Joi.string().required()
     })
   }
@@ -32,7 +32,7 @@ class Block {
   }
 
   calculateHash() {
-    const hash = CryptoJS.SHA256(this.index + this.prevHash + this.timestamp + this.data).toString()
+    const hash = CryptoJS.SHA256(this.index + this.prevHash + this.timestamp + this.transactions).toString()
     return hash
   }
 }

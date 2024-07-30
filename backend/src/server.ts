@@ -16,14 +16,7 @@ const startServer = async () => {
   // })
 
   // (async () => {
-  //   const seedPhrase = Wallet.generateSeedPhrase()
-  //   console.log('Seed Phrase:', seedPhrase)
 
-  //   const privateKey = await Wallet.getPrivateKeyFromSeed(seedPhrase, 'mypassword')
-  //   console.log('Private Key:', privateKey)
-
-  //   const publicKey = Wallet.getPublicKey(privateKey)
-  //   console.log('Public Key:', publicKey)
   // })()
 
   const app = express()
