@@ -1,15 +1,8 @@
 import CryptoJS from 'crypto-js'
 import Joi from 'joi'
-import { Transaction } from '~/models/classes/Transaction'
 
 class Block {
-  public index: number
-  public prevHash: string
-  public timestamp: number
-  public transactions: Transaction[]
-  public hash: string
-
-  constructor(index: number, prevHash: string, transactions: Transaction[]) {
+  constructor(index, prevHash, transactions) {
     this.index = index
     this.prevHash = prevHash
     this.timestamp = new Date().getTime() / 1000
@@ -17,7 +10,7 @@ class Block {
     this.hash = this.calculateHash()
   }
 
-  private static get schema() {
+  static get schema() {
     return Joi.object({
       index: Joi.number().integer().required(),
       prevHash: Joi.string().required(),
@@ -27,7 +20,7 @@ class Block {
     })
   }
 
-  static async validateAsync(block: Block) {
+  static async validateAsync(block) {
     return this.schema.validateAsync(block, { abortEarly: false })
   }
 

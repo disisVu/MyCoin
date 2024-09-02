@@ -4,11 +4,6 @@ import { Transaction, UnspentTxOut } from '~/models/classes/Transaction'
 import { Validator } from '~/models/classes/Validator'
 
 class Blockchain {
-  public chain: Block[]
-  public validators: Validator[]
-  public pendingTxs: Transaction[]
-  private utxos: UnspentTxOut[]
-
   constructor() {
     this.chain = [Blockchain.createGenesisBlock()]
     this.validators = []
@@ -24,13 +19,13 @@ class Blockchain {
     return this.chain[this.chain.length - 1]
   }
 
-  generateNextBlock(data: Transaction[]) {
+  generateNextBlock(data) {
     const prevBlock = this.getLatestBlock()
     const nextIndex = prevBlock.index + 1
     return new Block(nextIndex, prevBlock.hash, data)
   }
 
-  static isValidNewBlock(newBlock: Block, prevBlock: Block) {
+  static isValidNewBlock(newBlock, prevBlock) {
     if (prevBlock.index + 1 != newBlock.index) {
       console.log('Invalid index')
       return false
@@ -62,7 +57,7 @@ class Blockchain {
     return true
   }
 
-  replaceChain(newBlockchain: Blockchain) {
+  replaceChain(newBlockchain) {
     if (newBlockchain.isValidChain() && newBlockchain.chain.length > this.chain.length) {
       console.log('Received blockchain is valid')
       this.chain = newBlockchain.chain
@@ -72,8 +67,8 @@ class Blockchain {
     }
   }
 
-  getAllUnspentTxOuts(): UnspentTxOut[] {
-    const unspentTxOuts: UnspentTxOut[] = []
+  getAllUnspentTxOuts() {
+    const unspentTxOuts = []
     this.chain.forEach(block => {
       block.transactions.forEach(transaction => {
         transaction.txOuts.forEach((txOut, index) => {
@@ -90,7 +85,7 @@ class Blockchain {
     return unspentTxOuts
   }
 
-  updateUnspentTxOuts(newTransactions: Transaction[]): void {
+  updateUnspentTxOuts(newTransactions) {
     newTransactions.forEach(transaction => {
       // Add new UTXOs from the transaction outputs
       transaction.txOuts.forEach((txOut, index) => {
@@ -108,7 +103,7 @@ class Blockchain {
     })
   }
 
-  stakeCoins(address: string, amount: number) {
+  stakeCoins(address, amount) {
     const validator = this.validators.find(v => v.address === address)
     if (validator) {
       validator.stake += amount
@@ -117,7 +112,7 @@ class Blockchain {
     }
   }
 
-  selectValidator() : Validator {
+  selectValidator() {
     const totalStake = this.validators.reduce((sum, v) => sum + v.stake, 0)
     const random = Math.random() * totalStake
     let cumulativeStake = 0
@@ -130,7 +125,7 @@ class Blockchain {
     return this.validators[0]
   }
 
-  rewardValidator(address: string, reward: number) {
+  rewardValidator(address, reward) {
     const validator = this.validators.find(v => v.address == address)
     if (validator) {
       validator.stake += reward
@@ -138,7 +133,7 @@ class Blockchain {
   }
 
   // Method to verify each transaction in a block
-  verifyBlockTransactions(block: Block): boolean {
+  verifyBlockTransactions(block) {
     for (const transaction of block.transactions) {
       if (!this.verifyTransaction(transaction)) {
         return false // If any transaction is invalid, return false
@@ -148,7 +143,7 @@ class Blockchain {
   }
 
   // Method to verify a single transaction
-  private verifyTransaction(transaction: Transaction): boolean {
+  verifyTransaction(transaction) {
     // 1. Verify transaction syntax
     if (!this.verifyTransactionSyntax(transaction)) {
       return false
@@ -169,22 +164,17 @@ class Blockchain {
       return false
     }
 
-    // 5. Check for double spending
-    if (!this.checkForDoubleSpending(transaction)) {
-      return false
-    }
-
     return true // Transaction is valid
   }
 
   // Verify transaction syntax
-  private verifyTransactionSyntax(transaction: Transaction): boolean {
+  verifyTransactionSyntax(transaction) {
     // Check for proper format, etc.
     return transaction != null && Array.isArray(transaction.txIns) && Array.isArray(transaction.txOuts)
   }
 
   // Verify transaction signatures
-  private verifyTransactionSignatures(transaction: Transaction): boolean {
+  verifyTransactionSignatures(transaction) {
     // Verify each TxIn's signature
     return transaction.txIns.every(txIn => {
       const { txOutId, txOutIndex, signature } = txIn
@@ -197,7 +187,7 @@ class Blockchain {
   }
 
   // Validate transaction inputs
-  private validateTransactionInputs(transaction: Transaction): boolean {
+  validateTransactionInputs(transaction) {
     // Inputs must be unspent
     return transaction.txIns.every(txIn => {
       return this.utxos.some(utxo => utxo.txOutId === txIn.txOutId && utxo.txOutIndex === txIn.txOutIndex)
@@ -205,7 +195,7 @@ class Blockchain {
   }
 
   // Validate transaction outputs
-  private validateTransactionOutputs(transaction: Transaction): boolean {
+  validateTransactionOutputs(transaction) {
     const totalInputValue = transaction.txIns.reduce((sum, txIn) => {
       const utxo = this.utxos.find(utxo => utxo.txOutId === txIn.txOutId && utxo.txOutIndex === txIn.txOutIndex)
       return sum + (utxo ? utxo.amount : 0)
@@ -216,20 +206,8 @@ class Blockchain {
     // Total input must be greater than or equal to total output
     return totalInputValue >= totalOutputValue
   }
-
-  // Check for double spending
-  private checkForDoubleSpending(transaction: Transaction): boolean {
-    // Check that the inputs are not already spent in the current block
-    const usedInputs = new Set<string>()
-    return transaction.txIns.every(txIn => {
-      const inputId = `${txIn.txOutId}:${txIn.txOutIndex}`
-      if (usedInputs.has(inputId)) {
-        return false // Double spend detected
-      }
-      usedInputs.add(inputId)
-      return true
-    })
-  }
 }
 
-export { Blockchain }
+const MyCoinChain = new Blockchain()
+
+export { Blockchain, MyCoinChain }

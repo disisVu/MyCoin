@@ -7,24 +7,24 @@ import { UnspentTxOut } from './Transaction'
 const ec = new EC('secp256k1')
 
 class Wallet {
-  static generateSeedPhrase(): string {
+  static generateSeedPhrase() {
     return bip39.generateMnemonic()
   }
 
-  static async getPrivateKeyFromSeed(seedPhrase: string, password: string = ''): Promise<string> {
+  static async getPrivateKeyFromSeed(seedPhrase, password = '') {
     const seed = await bip39.mnemonicToSeed(seedPhrase, password)
     const root = HDNode.fromMasterSeed(seed)
     const addrNode = root.derive('m/44\'/0\'/0\'/0/0')
     return addrNode.privateKey.toString('hex')
   }
 
-  static getPublicKey(privateKey: string) : string {
+  static getPublicKey(privateKey) {
     const keyPair = ec.keyFromPrivate(privateKey, 'hex')
     const publicKey = keyPair.getPublic().encode('hex', true)
     return publicKey
   }
 
-  static getBalance(address: string, allUnspentTxOuts: UnspentTxOut[]) : number {
+  static getBalance(address, allUnspentTxOuts) {
     const unspentTxOuts = UnspentTxOut.findUnspentTxOutsByAddress(address, allUnspentTxOuts)
     if (unspentTxOuts != null) {
       return unspentTxOuts.reduce((sum, utxo) => sum + utxo.amount, 0)

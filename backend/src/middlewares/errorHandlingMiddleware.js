@@ -1,12 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
-import { Request, Response, NextFunction } from 'express'
 import { StatusCodes, getReasonPhrase } from 'http-status-codes'
 
-interface CustomError extends Error {
-  statusCode?: number
-}
-
-export const errorHandlingMiddleware = (err: CustomError, req: Request, res: Response, next: NextFunction): void => {
+export const errorHandlingMiddleware = (err, req, res, next) => {
   if (!err.statusCode) err.statusCode = StatusCodes.INTERNAL_SERVER_ERROR
 
   const responseError = {

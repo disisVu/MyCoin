@@ -1,13 +1,12 @@
-import { Block } from '~/models/classes/Block'
 import { blockRepository } from '~/repository/blockRepository'
 
-const createNew = async (reqBody: Block) => {
+const createNew = async (reqBody) => {
   try {
     const createdBlock = await blockRepository.createBlock(reqBody)
     return createdBlock
   }
   catch (error) {
-    throw new Error((error as Error).message)
+    throw new Error((error).message)
   }
 }
 
