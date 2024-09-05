@@ -64,9 +64,6 @@ class Blockchain {
   }
 
   static isValidChain(blockchain) {
-    if (JSON.stringify(blockchain.chain[0]) != JSON.stringify(Blockchain.createGenesisBlock())) {
-      return false
-    }
     const tempBlockchain = [blockchain.chain[0]]
     for (let i = 1; i < blockchain.chain.length; i++) {
       if (Blockchain.isValidNewBlock(blockchain.chain[i], tempBlockchain[i - 1])) {

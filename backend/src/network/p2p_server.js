@@ -1,12 +1,19 @@
+/* eslint-disable no-console */
 import { env } from '~/config/environment'
 import WS from 'ws'
-import { Blockchain, MyCoinChain } from '~/models/classes/Blockchain'
+import readline from 'readline'
+import { Blockchain } from '~/models/classes/Blockchain'
+import getRandomPort from '~/utils/randomPort'
 
-const PORT = env.P2P_PORT ? parseInt(env.P2P_PORT) : 5000
+
+const PORT = getRandomPort()
 const PEERS = env.PEERS ? env.PEERS.split(',') : []
-const MY_ADDRESS = 'ws://localhost:5000'
+const MY_ADDRESS = `ws://localhost:${PORT}`
 const server = new WS.Server({ port: PORT })
 
+let MyCoinChain = new Blockchain()
+let newBlock = MyCoinChain.generateNextBlock([])
+MyCoinChain.chain.push(newBlock)
 let tempChain = new Blockchain()
 
 function produceMessage(type, data) {
@@ -17,6 +24,11 @@ function sendMessage(message) {
   opened.forEach(node => {
     node.socket.send(JSON.stringify(message))
   })
+}
+
+function sendMessageSingle(message, peer) {
+  opened.filter(node => node.address == peer)[0].socket
+    .send(JSON.stringify(message))
 }
 
 // THE CONNECTION LISTENER
@@ -44,6 +56,7 @@ server.on('connection', async(socket) => {
     }
     case 'TYPE_SEND_CHAIN': {
       const { block, finished } = _message.data
+      console.log(block)
       if (!finished) {
         tempChain.chain.push(block)
       } else {
@@ -56,15 +69,16 @@ server.on('connection', async(socket) => {
       break
     }
     case 'TYPE_REQUEST_CHAIN': {
-      const socket = opened.filter(node => node.address === _message.data)[0].socket
-      for (let i = 1; i < MyCoinChain.chain.length; i++) {
-        socket.send(JSON.stringify(produceMessage(
+      const peer = _message.data.peer
+      for (let i = 0; i < MyCoinChain.chain.length; i++) {
+        const message = produceMessage(
           'TYPE_SEND_CHAIN',
           {
             block: MyCoinChain.chain[i],
             finished: i === MyCoinChain.chain.length - 1
           }
-        )))
+        )
+        sendMessageSingle(message, peer)
       }
       break
     }
@@ -122,4 +136,58 @@ async function connect(address) {
 
 PEERS.forEach(peer => connect(peer))
 
-export { sendMessage }
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  prompt: `\nblockchain-cli : ${PORT}> `
+})
+
+rl.prompt()
+
+rl.on('line', (line) => {
+  const input = line.trim().split(' ')
+  const command = input[0]
+  const args = input.slice(1)
+
+  switch (command) {
+  case 'connect': {
+    const address = `ws://localhost:${args[0]}`
+    connect(address)
+    break
+  }
+  case 'genesis': {
+    console.log(MyCoinChain.chain[0].hash)
+    break
+  }
+  case 'add-block': {
+    let newBlock = MyCoinChain.generateNextBlock([])
+    MyCoinChain.chain.push(newBlock)
+    break
+  }
+  case 'print-chain': {
+    for (let i = 0; i < MyCoinChain.chain.length; i++) {
+      let block = MyCoinChain.chain[i]
+      console.log(`Block ${block.index}: ${block.prevHash} ${block.hash}\n`)
+    }
+    break
+  }
+  case 'request-chain': {
+    const message = produceMessage('TYPE_REQUEST_CHAIN', { peer: MY_ADDRESS })
+    sendMessage(message)
+    break
+  }
+  case 'exit':
+    rl.close()
+    break
+  default:
+    console.log(`Unknown command: ${command}`)
+    break
+  }
+
+  rl.prompt()
+}).on('close', () => {
+  console.log('Exiting blockchain CLI')
+  process.exit(0)
+})
+
+export { sendMessage, connect }
