@@ -5,19 +5,12 @@ import exitHook from 'async-exit-hook'
 import { env } from '~/config/environment'
 import { myCoinAPI } from '~/routes/index'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
+import { MyCoinChain } from '~/models/classes/Blockchain'
 
 const startServer = async () => {
-  // const chain: Blockchain = new Blockchain()
-  // chain.chain.push(chain.generateNextBlock([]))
-  // chain.chain.push(chain.generateNextBlock([]))
-
-  // chain.chain.map((block: Block) => {
-  //   console.log('Block ', block.index, ': ', block.timestamp, ' - ', block.prevHash, ' - ', block.hash)
-  // })
-
-  // (async () => {
-
-  // })()
+  MyCoinChain.chain.map((block) => {
+    console.log('Block ', block.index, ': ', block.timestamp, ' - ', block.prevHash, ' - ', block.hash)
+  })
 
   const app = express()
 

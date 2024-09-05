@@ -1,14 +1,36 @@
 /* eslint-disable no-console */
 import { Block } from '~/models/classes/Block'
-import { Transaction, UnspentTxOut } from '~/models/classes/Transaction'
-import { Validator } from '~/models/classes/Validator'
+import { Transaction } from '~/models/classes/Transaction'
+import { Account } from '~/models/classes/Account'
 
 class Blockchain {
   constructor() {
     this.chain = [Blockchain.createGenesisBlock()]
-    this.validators = []
+    this.accounts = new Map()
+    this.validators = new Map()
     this.pendingTxs = []
-    this.utxos = this.getAllUnspentTxOuts()
+  }
+
+  addAccount(privateKey) {
+    const newAccount = new Account(privateKey)
+    this.accounts.set(newAccount.address, new Account(privateKey))
+  }
+
+  getAccount(address) {
+    if (!this.accounts.has(address)) {
+      console.log(`Account with address ${address} doesn't exist`)
+    }
+    return this.accounts.get(address)
+  }
+
+  createTransaction(account, recipient, amount) {
+    const transaction = new Transaction(account.address, recipient, amount, account.nonce)
+    this.addTransaction(transaction)
+    account.increaseNonce()
+  }
+
+  addTransaction(transaction) {
+    this.pendingTxs.add(transaction)
   }
 
   static createGenesisBlock() {
@@ -41,14 +63,14 @@ class Blockchain {
     return true
   }
 
-  isValidChain() {
-    if (JSON.stringify(this.chain[0]) != JSON.stringify(Blockchain.createGenesisBlock())) {
+  static isValidChain(blockchain) {
+    if (JSON.stringify(blockchain.chain[0]) != JSON.stringify(Blockchain.createGenesisBlock())) {
       return false
     }
-    const tempBlockchain = [this.chain[0]]
-    for (let i = 1; i < this.chain.length; i++) {
-      if (Blockchain.isValidNewBlock(this.chain[i], tempBlockchain[i - 1])) {
-        tempBlockchain.push(this.chain[i])
+    const tempBlockchain = [blockchain.chain[0]]
+    for (let i = 1; i < blockchain.chain.length; i++) {
+      if (Blockchain.isValidNewBlock(blockchain.chain[i], tempBlockchain[i - 1])) {
+        tempBlockchain.push(blockchain.chain[i])
       }
       else {
         return false
@@ -58,7 +80,7 @@ class Blockchain {
   }
 
   replaceChain(newBlockchain) {
-    if (newBlockchain.isValidChain() && newBlockchain.chain.length > this.chain.length) {
+    if (Blockchain.isValidChain(newBlockchain) && newBlockchain.chain.length > this.chain.length) {
       console.log('Received blockchain is valid')
       this.chain = newBlockchain.chain
     }
@@ -67,49 +89,20 @@ class Blockchain {
     }
   }
 
-  getAllUnspentTxOuts() {
-    const unspentTxOuts = []
-    this.chain.forEach(block => {
-      block.transactions.forEach(transaction => {
-        transaction.txOuts.forEach((txOut, index) => {
-          unspentTxOuts.push(new UnspentTxOut(transaction.id, index, txOut.address, txOut.amount))
-        })
-        transaction.txIns.forEach(txIn => {
-          const indexToRemove = unspentTxOuts.findIndex(utxo => utxo.txOutId === txIn.txOutId && utxo.txOutIndex === txIn.txOutIndex)
-          if (indexToRemove >= 0) {
-            unspentTxOuts.splice(indexToRemove, 1)
-          }
-        })
-      })
-    })
-    return unspentTxOuts
-  }
-
-  updateUnspentTxOuts(newTransactions) {
-    newTransactions.forEach(transaction => {
-      // Add new UTXOs from the transaction outputs
-      transaction.txOuts.forEach((txOut, index) => {
-        this.utxos.push(new UnspentTxOut(transaction.id, index, txOut.address, txOut.amount))
-      })
-      // Remove spent UTXOs referenced by the transaction inputs
-      transaction.txIns.forEach(txIn => {
-        const indexToRemove = this.utxos.findIndex(
-          utxo => utxo.txOutId === txIn.txOutId && utxo.txOutIndex === txIn.txOutIndex
-        )
-        if (indexToRemove >= 0) {
-          this.utxos.splice(indexToRemove, 1)
-        }
-      })
+  // Validator
+  addValidator(validator) {
+    this.validators.set(validator.account.address, {
+      account: validator.account,
+      stake: validator.stake
     })
   }
 
-  stakeCoins(address, amount) {
-    const validator = this.validators.find(v => v.address === address)
-    if (validator) {
-      validator.stake += amount
-    } else {
-      this.validators.push(new Validator(address, amount))
-    }
+  removeValidator(address) {
+    this.validators.delete(address)
+  }
+
+  getValidator(address) {
+    return this.validators.get(address)
   }
 
   selectValidator() {
@@ -125,10 +118,17 @@ class Blockchain {
     return this.validators[0]
   }
 
-  rewardValidator(address, reward) {
-    const validator = this.validators.find(v => v.address == address)
+  rewardValidator(address, amount) {
+    const validator = this.validators.find(v => v.account.address == address)
     if (validator) {
-      validator.stake += reward
+      validator.account.credit(amount)
+    }
+  }
+
+  slashValidator(address, amount) {
+    const validator = this.validators.find(v => v.account.address == address)
+    if (validator) {
+      validator.account.debit(amount)
     }
   }
 
@@ -154,16 +154,6 @@ class Blockchain {
       return false
     }
 
-    // 3. Validate inputs
-    if (!this.validateTransactionInputs(transaction)) {
-      return false
-    }
-
-    // 4. Validate outputs
-    if (!this.validateTransactionOutputs(transaction)) {
-      return false
-    }
-
     return true // Transaction is valid
   }
 
@@ -184,27 +174,6 @@ class Blockchain {
       }
       return Transaction.verifySignature(txOut.address, transaction.id, signature)
     })
-  }
-
-  // Validate transaction inputs
-  validateTransactionInputs(transaction) {
-    // Inputs must be unspent
-    return transaction.txIns.every(txIn => {
-      return this.utxos.some(utxo => utxo.txOutId === txIn.txOutId && utxo.txOutIndex === txIn.txOutIndex)
-    })
-  }
-
-  // Validate transaction outputs
-  validateTransactionOutputs(transaction) {
-    const totalInputValue = transaction.txIns.reduce((sum, txIn) => {
-      const utxo = this.utxos.find(utxo => utxo.txOutId === txIn.txOutId && utxo.txOutIndex === txIn.txOutIndex)
-      return sum + (utxo ? utxo.amount : 0)
-    }, 0)
-
-    const totalOutputValue = transaction.txOuts.reduce((sum, txOut) => sum + txOut.amount, 0)
-
-    // Total input must be greater than or equal to total output
-    return totalInputValue >= totalOutputValue
   }
 }
 
